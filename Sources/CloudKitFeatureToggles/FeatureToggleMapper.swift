@@ -8,19 +8,33 @@
 import Foundation
 import CloudKit
 
+public enum FeatureToggleValue: Equatable {
+    case integer(Int)
+    case string(String)    
+}
+
+public extension FeatureToggleValue {
+    var boolValue: Bool {
+        switch self {
+        case .integer(let i): return i != 0
+        case .string(let s): return (s as NSString).boolValue
+        }
+    }
+}
+
 public protocol FeatureToggleRepresentable {
     var identifier: String { get }
-    var isActive: Bool { get }
+    var value: FeatureToggleValue { get }
 }
 
 public protocol FeatureToggleIdentifiable {
     var identifier: String { get }
-    var fallbackValue: Bool { get }
+    var fallbackValue: FeatureToggleValue { get }
 }
 
 public struct FeatureToggle: FeatureToggleRepresentable, Equatable {
     public let identifier: String
-    public let isActive: Bool
+    public let value: FeatureToggleValue
 }
 
 protocol FeatureToggleMappable {
@@ -29,18 +43,27 @@ protocol FeatureToggleMappable {
 
 class FeatureToggleMapper: FeatureToggleMappable {
     private let featureToggleNameFieldID: String
-    private let featureToggleIsActiveFieldID: String
+    private let featureToggleValueFieldID: String
     
-    init(featureToggleNameFieldID: String, featureToggleIsActiveFieldID: String) {
+    init(featureToggleNameFieldID: String, featureToggleValueFieldID: String) {
         self.featureToggleNameFieldID = featureToggleNameFieldID
-        self.featureToggleIsActiveFieldID = featureToggleIsActiveFieldID
+        self.featureToggleValueFieldID = featureToggleValueFieldID
     }
     
     func map(record: CKRecord) -> FeatureToggle? {
-        guard let isActive = record[featureToggleIsActiveFieldID] as? Int64, let featureName = record[featureToggleNameFieldID] as? String else {
+        guard let featureName = record[featureToggleNameFieldID] as? String else {
             return nil
         }
         
-        return FeatureToggle(identifier: featureName, isActive: NSNumber(value: isActive).boolValue)
+        let value = record[featureToggleValueFieldID]
+        
+        switch value {
+        case let value as String:
+            return FeatureToggle(identifier: featureName, value: .string(value))
+        case let value as Int:
+            return FeatureToggle(identifier: featureName, value: .integer(value))
+        default:
+            return nil
+        }
     }
 }
