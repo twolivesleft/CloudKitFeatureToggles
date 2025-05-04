@@ -13,15 +13,6 @@ public enum FeatureToggleValue: Equatable {
     case string(String)    
 }
 
-public extension FeatureToggleValue {
-    var boolValue: Bool {
-        switch self {
-        case .integer(let i): return i != 0
-        case .string(let s): return (s as NSString).boolValue
-        }
-    }
-}
-
 public protocol FeatureToggleRepresentable {
     var identifier: String { get }
     var value: FeatureToggleValue { get }
@@ -83,6 +74,13 @@ public extension FeatureToggleRepresentable {
             string
         default:
             nil
+        }
+    }
+    
+    var boolValue: Bool {
+        switch value {
+        case .integer(let i): return i != 0
+        case .string(let s): return (s as NSString).boolValue
         }
     }
 }
