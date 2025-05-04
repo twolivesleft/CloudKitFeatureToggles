@@ -66,3 +66,23 @@ class FeatureToggleMapper: FeatureToggleMappable {
         }
     }
 }
+
+public extension FeatureToggleRepresentable {
+    var intValue: Int? {
+        switch value {
+        case .integer(let int):
+            int
+        default:
+            nil
+        }
+    }
+    
+    var stringValue: String? {
+        switch value {
+        case .string(let string):
+            string
+        default:
+            nil
+        }
+    }
+}
