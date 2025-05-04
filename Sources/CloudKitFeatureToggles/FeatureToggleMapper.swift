@@ -43,11 +43,13 @@ protocol FeatureToggleMappable {
 
 class FeatureToggleMapper: FeatureToggleMappable {
     private let featureToggleNameFieldID: String
-    private let featureToggleValueFieldID: String
+    private let featureToggleIntValueFieldID: String
+    private let featureToggleStringValueFieldID: String
     
-    init(featureToggleNameFieldID: String, featureToggleValueFieldID: String) {
+    init(featureToggleNameFieldID: String, featureToggleIntValueFieldID: String, featureToggleStringValueFieldID: String) {
         self.featureToggleNameFieldID = featureToggleNameFieldID
-        self.featureToggleValueFieldID = featureToggleValueFieldID
+        self.featureToggleIntValueFieldID = featureToggleIntValueFieldID
+        self.featureToggleStringValueFieldID = featureToggleStringValueFieldID
     }
     
     func map(record: CKRecord) -> FeatureToggle? {
@@ -55,15 +57,12 @@ class FeatureToggleMapper: FeatureToggleMappable {
             return nil
         }
         
-        let value = record[featureToggleValueFieldID]
-        
-        switch value {
-        case let value as String:
-            return FeatureToggle(identifier: featureName, value: .string(value))
-        case let value as Int:
-            return FeatureToggle(identifier: featureName, value: .integer(value))
-        default:
-            return nil
+        return if let value = record[featureToggleIntValueFieldID] as? Int {
+            FeatureToggle(identifier: featureName, value: .integer(value))
+        } else if let value = record[featureToggleStringValueFieldID] as? String {
+            FeatureToggle(identifier: featureName, value: .string(value))
+        } else {
+            nil
         }
     }
 }

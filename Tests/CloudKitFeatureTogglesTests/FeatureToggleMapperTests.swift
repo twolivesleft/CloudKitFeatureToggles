@@ -14,7 +14,7 @@ class FeatureToggleMapperTests: XCTestCase {
     var subject: FeatureToggleMappable!
 
     override func setUp() {
-        subject = FeatureToggleMapper(featureToggleNameFieldID: "name", featureToggleValueFieldID: "value")
+        subject = FeatureToggleMapper(featureToggleNameFieldID: "name", featureToggleIntValueFieldID: "intValue", featureToggleStringValueFieldID: "stringValue")
     }
     
     func testMapInvalidInput() {
@@ -54,7 +54,7 @@ class FeatureToggleMapperTests: XCTestCase {
         let expectedValue: FeatureToggleValue = .integer(1)
         
         let record = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier"))
-        record["value"] = true
+        record["intValue"] = true
         record["name"] = expectedIdentifier
         
         let result = subject.map(record: record)
@@ -67,7 +67,7 @@ class FeatureToggleMapperTests: XCTestCase {
         let expectedValue: FeatureToggleValue = .integer(0)
         
         let record = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier"))
-        record["value"] = false
+        record["intValue"] = false
         record["name"] = expectedIdentifier
         
         let result = subject.map(record: record)
