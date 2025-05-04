@@ -59,28 +59,30 @@ class FeatureToggleMapper: FeatureToggleMappable {
 }
 
 public extension FeatureToggleRepresentable {
-    var intValue: Int? {
+    var intValue: Int {
         switch value {
         case .integer(let int):
             int
         default:
-            nil
+            fatalError("Int value used on non-int feature type")
         }
     }
     
-    var stringValue: String? {
+    var stringValue: String {
         switch value {
         case .string(let string):
             string
         default:
-            nil
+            fatalError("String value used on non-string feature type")
         }
     }
     
     var boolValue: Bool {
         switch value {
-        case .integer(let i): return i != 0
-        case .string(let s): return (s as NSString).boolValue
+        case .integer(let i):
+            i != 0
+        case .string(let s):
+            (s as NSString).boolValue
         }
     }
 }
