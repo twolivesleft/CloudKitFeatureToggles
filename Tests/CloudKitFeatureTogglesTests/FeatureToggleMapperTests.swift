@@ -14,7 +14,7 @@ class FeatureToggleMapperTests: XCTestCase {
     var subject: FeatureToggleMappable!
 
     override func setUp() {
-        subject = FeatureToggleMapper(featureToggleNameFieldID: "featureName", featureToggleIsActiveFieldID: "isActive")
+        subject = FeatureToggleMapper(featureToggleNameFieldID: "name", featureToggleIntValueFieldID: "intValue", featureToggleStringValueFieldID: "stringValue")
     }
     
     func testMapInvalidInput() {
@@ -32,53 +32,47 @@ class FeatureToggleMapperTests: XCTestCase {
         
         let wrongIsActiveField = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier3"))
         wrongIsActiveField["bla"] = true
-        wrongIsActiveField["featureName"] = 1283765
+        wrongIsActiveField["name"] = 1283765
         
         XCTAssertNil(subject.map(record: wrongIsActiveField))
         
         let wrongFeatureNameField = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier4"))
-        wrongFeatureNameField["isActive"] = true
+        wrongFeatureNameField["value"] = true
         wrongFeatureNameField["muh"] = 1283765
         
         XCTAssertNil(subject.map(record: wrongFeatureNameField))
         
-        let wrongIsActiveType = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier5"))
-        wrongIsActiveType["isActive"] = "true"
-        wrongIsActiveType["featureName"] = "1283765"
-        
-        XCTAssertNil(subject.map(record: wrongIsActiveType))
-        
         let wrongFeatureNameType = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier6"))
-        wrongFeatureNameType["isActive"] = true
-        wrongFeatureNameType["featureName"] = 1283765
+        wrongFeatureNameType["value"] = true
+        wrongFeatureNameType["name"] = 1283765
         
         XCTAssertNil(subject.map(record: wrongFeatureNameType))
     }
     
     func testMap() {
         let expectedIdentifier = "1283765"
-        let expectedIsActive = true
+        let expectedValue: FeatureToggleValue = .integer(1)
         
         let record = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier"))
-        record["isActive"] = expectedIsActive
-        record["featureName"] = expectedIdentifier
+        record["intValue"] = true
+        record["name"] = expectedIdentifier
         
         let result = subject.map(record: record)
         XCTAssertNotNil(result)
-        XCTAssertEqual(result, FeatureToggle(identifier: expectedIdentifier, isActive: expectedIsActive))
+        XCTAssertEqual(result, FeatureToggle(identifier: expectedIdentifier, value: expectedValue))
     }
     
     func testMap2() {
         let expectedIdentifier = "akjshgdjaskd(/(/&%$§"
-        let expectedIsActive = false
+        let expectedValue: FeatureToggleValue = .integer(0)
         
         let record = CKRecord(recordType: "FeatureStatus", recordID: CKRecord.ID(recordName: "identifier"))
-        record["isActive"] = expectedIsActive
-        record["featureName"] = expectedIdentifier
+        record["intValue"] = false
+        record["name"] = expectedIdentifier
         
         let result = subject.map(record: record)
         XCTAssertNotNil(result)
-        XCTAssertEqual(result, FeatureToggle(identifier: expectedIdentifier, isActive: expectedIsActive))
+        XCTAssertEqual(result, FeatureToggle(identifier: expectedIdentifier, value: expectedValue))
     }
     
     static var allTests = [

@@ -34,8 +34,8 @@ And don't forget to add the dependency to your target(s).
 
 | Field | Type |
 | --- | --- |
-| `featureName` | `String` |
-| `isActive` | `Int64` |
+| `name` | `String` |
+| `value` | `Any` |
 
 For each feature toggle you want to support in your application later add a new record in your CloudKit *public database*. 
 

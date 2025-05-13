@@ -15,12 +15,12 @@ class FeatureToggleRepositoryTests: XCTestCase {
             return self.rawValue
         }
         
-        var fallbackValue: Bool {
+        var fallbackValue: FeatureToggleValue {
             switch self {
             case .feature1:
-                return false
+                return .integer(0)
             case .feature2:
-                return true
+                return .integer(1)
             }
         }
         
@@ -52,25 +52,25 @@ class FeatureToggleRepositoryTests: XCTestCase {
     }
     
     func testRetrieveBeforeSave() {
-        XCTAssertEqual(subject.retrieve(identifiable: TestToggle.feature1).isActive, TestToggle.feature1.fallbackValue)
-        XCTAssertEqual(subject.retrieve(identifiable: TestToggle.feature2).isActive, TestToggle.feature2.fallbackValue)
+        XCTAssertEqual(subject.retrieve(identifiable: TestToggle.feature1).value, TestToggle.feature1.fallbackValue)
+        XCTAssertEqual(subject.retrieve(identifiable: TestToggle.feature2).value, TestToggle.feature2.fallbackValue)
         
-        XCTAssertFalse(subject.retrieve(identifiable: TestToggle.feature1).isActive)
-        subject.save(featureToggle: FeatureToggle(identifier: TestToggle.feature1.rawValue, isActive: true))
-        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature1).isActive)
+        XCTAssertFalse(subject.retrieve(identifiable: TestToggle.feature1).value == .integer(1))
+        subject.save(featureToggle: FeatureToggle(identifier: TestToggle.feature1.rawValue, value: .integer(1)))
+        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature1).value == .integer(1))
     }
 
     func testSaveAndRetrieve() {
-        XCTAssertFalse(subject.retrieve(identifiable: TestToggle.feature1).isActive)
-        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature2).isActive)
+        XCTAssertFalse(subject.retrieve(identifiable: TestToggle.feature1).value == .integer(1))
+        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature2).value == .integer(1))
         
-        subject.save(featureToggle: FeatureToggle(identifier: TestToggle.feature1.rawValue, isActive: true))
-        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature1).isActive)
-        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature2).isActive)
+        subject.save(featureToggle: FeatureToggle(identifier: TestToggle.feature1.rawValue, value: .integer(1)))
+        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature1).value == .integer(1))
+        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature2).value == .integer(1))
         
-        subject.save(featureToggle: FeatureToggle(identifier: TestToggle.feature2.rawValue, isActive: false))
-        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature1).isActive)
-        XCTAssertFalse(subject.retrieve(identifiable: TestToggle.feature2).isActive)
+        subject.save(featureToggle: FeatureToggle(identifier: TestToggle.feature2.rawValue, value: .integer(0)))
+        XCTAssertTrue(subject.retrieve(identifiable: TestToggle.feature1).value == .integer(1))
+        XCTAssertFalse(subject.retrieve(identifiable: TestToggle.feature2).value == .integer(1))
     }
     
     static var allTests = [

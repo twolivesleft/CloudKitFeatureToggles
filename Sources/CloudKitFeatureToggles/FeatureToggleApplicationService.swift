@@ -61,12 +61,17 @@ extension FeatureToggleApplicationService: UIApplicationDelegate {
         return true
     }
     
-    public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        guard let notification = CKNotification(fromRemoteNotificationDictionary: userInfo), let subscriptionID = notification.subscriptionID else {
-            return
+    public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
+        guard let notification = CKNotification(fromRemoteNotificationDictionary: userInfo),
+              let subscriptionID = notification.subscriptionID else {
+            return .noData
         }
-        
-        handleRemoteNotification(subscriptionID: subscriptionID, completionHandler: completionHandler)
+
+        return await withCheckedContinuation { continuation in
+            handleRemoteNotification(subscriptionID: subscriptionID) { result in
+                continuation.resume(returning: result)
+            }
+        }
     }
 }
 #endif

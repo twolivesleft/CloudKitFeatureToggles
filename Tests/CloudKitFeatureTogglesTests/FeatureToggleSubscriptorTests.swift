@@ -25,7 +25,7 @@ class FeatureToggleSubscriptorTests: XCTestCase {
         
         cloudKitDatabase = MockCloudKitDatabaseConformable()
         repository = MockToggleRepository()
-        subject = FeatureToggleSubscriptor(toggleRepository: repository, featureToggleRecordID: "TestFeatureStatus", featureToggleNameFieldID: "toggleName", featureToggleIsActiveFieldID: "isActive",  defaults: defaults, cloudKitDatabaseConformable: cloudKitDatabase)
+        subject = FeatureToggleSubscriptor(toggleRepository: repository, featureToggleRecordID: "TestFeatureStatus", featureToggleNameFieldID: "name", featureToggleIntValueFieldID: "intValue", featureToggleStringValueFieldID: "stringValue",  defaults: defaults, cloudKitDatabaseConformable: cloudKitDatabase)
     }
 
     override func tearDown() {
@@ -38,8 +38,8 @@ class FeatureToggleSubscriptorTests: XCTestCase {
         XCTAssertNil(cloudKitDatabase.recordType)
         XCTAssertEqual(repository.toggles.count, 0)
         
-        cloudKitDatabase.recordFetched["isActive"] = 1
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 1
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.fetchAll()
         
@@ -49,10 +49,10 @@ class FeatureToggleSubscriptorTests: XCTestCase {
             return
         }
         XCTAssertEqual(toggle.identifier, "Toggle1")
-        XCTAssertTrue(toggle.isActive)
+        XCTAssertEqual(toggle.value, .integer(1))
         
-        cloudKitDatabase.recordFetched["isActive"] = 0
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 0
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.fetchAll()
         
@@ -63,7 +63,7 @@ class FeatureToggleSubscriptorTests: XCTestCase {
             return
         }
         XCTAssertEqual(toggle2.identifier, "Toggle1")
-        XCTAssertFalse(toggle2.isActive)
+        XCTAssertEqual(toggle2.value, .integer(0))
     }
     
     func testFetchAllError() {
@@ -72,8 +72,8 @@ class FeatureToggleSubscriptorTests: XCTestCase {
         XCTAssertNil(cloudKitDatabase.recordType)
         XCTAssertEqual(repository.toggles.count, 0)
         
-        cloudKitDatabase.recordFetched["isActive"] = 1
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 1
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.fetchAll()
         
@@ -89,8 +89,8 @@ class FeatureToggleSubscriptorTests: XCTestCase {
             
             return toggles.count == 1
         }
-        cloudKitDatabase.recordFetched["isActive"] = 1
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 1
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.fetchAll()
         wait(for: [expectation], timeout: 0.1)
@@ -149,8 +149,8 @@ class FeatureToggleSubscriptorTests: XCTestCase {
         XCTAssertEqual(cloudKitDatabase.addCalledCount, 0)
         XCTAssertEqual(repository.toggles.count, 0)
         
-        cloudKitDatabase.recordFetched["isActive"] = 1
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 1
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.handleNotification()
         
@@ -162,10 +162,10 @@ class FeatureToggleSubscriptorTests: XCTestCase {
             return
         }
         XCTAssertEqual(toggle.identifier, "Toggle1")
-        XCTAssertTrue(toggle.isActive)
+        XCTAssertEqual(toggle.value, .integer(1))
         
-        cloudKitDatabase.recordFetched["isActive"] = 0
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 0
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.handleNotification()
         
@@ -178,7 +178,7 @@ class FeatureToggleSubscriptorTests: XCTestCase {
             return
         }
         XCTAssertEqual(toggle2.identifier, "Toggle1")
-        XCTAssertFalse(toggle2.isActive)
+        XCTAssertEqual(toggle2.value, .integer(0))
     }
     
     func testHandleNotificationSendNotification() {
@@ -189,8 +189,8 @@ class FeatureToggleSubscriptorTests: XCTestCase {
            
             return toggles.count == 1
         }
-        cloudKitDatabase.recordFetched["isActive"] = 1
-        cloudKitDatabase.recordFetched["toggleName"] = "Toggle1"
+        cloudKitDatabase.recordFetched["intValue"] = 1
+        cloudKitDatabase.recordFetched["name"] = "Toggle1"
         
         subject.handleNotification()
         wait(for: [expectation], timeout: 0.1)
@@ -239,13 +239,13 @@ class MockToggleRepository: FeatureToggleRepository {
     func retrieve(identifiable: FeatureToggleIdentifiable) -> FeatureToggleRepresentable {
         toggles.first { (representable) -> Bool in
             representable.identifier == identifiable.identifier
-        } ?? MockToggleRepresentable(identifier: identifiable.identifier, isActive: identifiable.fallbackValue)
+        } ?? MockToggleRepresentable(identifier: identifiable.identifier, value: identifiable.fallbackValue)
     }
 }
 
 struct MockToggleRepresentable: FeatureToggleRepresentable {
     var identifier: String
-    var isActive: Bool
+    var value: FeatureToggleValue
 }
 
 class MockCloudKitDatabaseConformable: CloudKitDatabaseConformable {

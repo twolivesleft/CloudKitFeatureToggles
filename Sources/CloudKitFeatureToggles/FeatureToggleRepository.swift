@@ -26,12 +26,28 @@ public class FeatureToggleUserDefaultsRepository {
 
 extension FeatureToggleUserDefaultsRepository: FeatureToggleRepository {
     public func retrieve(identifiable: FeatureToggleIdentifiable) -> FeatureToggleRepresentable {
-        let isActive = defaults.value(forKey: identifiable.identifier) as? Bool
+        let storedValue = defaults.value(forKey: identifiable.identifier)
+        let value: FeatureToggleValue
         
-        return FeatureToggle(identifier: identifiable.identifier, isActive: isActive ?? identifiable.fallbackValue)
+        switch storedValue {
+
+        case let int as Int:
+            value = .integer(int)
+        case let string as String:
+            value = .string(string)
+        default:
+            value = identifiable.fallbackValue
+        }
+        
+        return FeatureToggle(identifier: identifiable.identifier, value: value)
     }
     
     public func save(featureToggle: FeatureToggleRepresentable) {
-        defaults.set(featureToggle.isActive, forKey: featureToggle.identifier)
+        switch featureToggle.value {
+        case .integer(let intValue):
+            defaults.set(intValue, forKey: featureToggle.identifier)
+        case .string(let stringValue):
+            defaults.set(stringValue, forKey: featureToggle.identifier)
+        }
     }
 }

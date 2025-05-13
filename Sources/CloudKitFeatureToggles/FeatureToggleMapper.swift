@@ -8,19 +8,24 @@
 import Foundation
 import CloudKit
 
+public enum FeatureToggleValue: Equatable {
+    case integer(Int)
+    case string(String)    
+}
+
 public protocol FeatureToggleRepresentable {
     var identifier: String { get }
-    var isActive: Bool { get }
+    var value: FeatureToggleValue { get }
 }
 
 public protocol FeatureToggleIdentifiable {
     var identifier: String { get }
-    var fallbackValue: Bool { get }
+    var fallbackValue: FeatureToggleValue { get }
 }
 
 public struct FeatureToggle: FeatureToggleRepresentable, Equatable {
     public let identifier: String
-    public let isActive: Bool
+    public let value: FeatureToggleValue
 }
 
 protocol FeatureToggleMappable {
@@ -29,18 +34,55 @@ protocol FeatureToggleMappable {
 
 class FeatureToggleMapper: FeatureToggleMappable {
     private let featureToggleNameFieldID: String
-    private let featureToggleIsActiveFieldID: String
+    private let featureToggleIntValueFieldID: String
+    private let featureToggleStringValueFieldID: String
     
-    init(featureToggleNameFieldID: String, featureToggleIsActiveFieldID: String) {
+    init(featureToggleNameFieldID: String, featureToggleIntValueFieldID: String, featureToggleStringValueFieldID: String) {
         self.featureToggleNameFieldID = featureToggleNameFieldID
-        self.featureToggleIsActiveFieldID = featureToggleIsActiveFieldID
+        self.featureToggleIntValueFieldID = featureToggleIntValueFieldID
+        self.featureToggleStringValueFieldID = featureToggleStringValueFieldID
     }
     
     func map(record: CKRecord) -> FeatureToggle? {
-        guard let isActive = record[featureToggleIsActiveFieldID] as? Int64, let featureName = record[featureToggleNameFieldID] as? String else {
+        guard let featureName = record[featureToggleNameFieldID] as? String else {
             return nil
         }
         
-        return FeatureToggle(identifier: featureName, isActive: NSNumber(value: isActive).boolValue)
+        return if let value = record[featureToggleIntValueFieldID] as? Int {
+            FeatureToggle(identifier: featureName, value: .integer(value))
+        } else if let value = record[featureToggleStringValueFieldID] as? String {
+            FeatureToggle(identifier: featureName, value: .string(value))
+        } else {
+            nil
+        }
+    }
+}
+
+public extension FeatureToggleRepresentable {
+    var intValue: Int {
+        switch value {
+        case .integer(let int):
+            int
+        default:
+            fatalError("Int value used on non-int feature type")
+        }
+    }
+    
+    var stringValue: String {
+        switch value {
+        case .string(let string):
+            string
+        default:
+            fatalError("String value used on non-string feature type")
+        }
+    }
+    
+    var boolValue: Bool {
+        switch value {
+        case .integer(let i):
+            i != 0
+        case .string(let s):
+            (s as NSString).boolValue
+        }
     }
 }
